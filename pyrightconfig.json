@@ -1,3 +1,4 @@
 {
-    "stubPath": "mswin/pycaw-audio-device-switcher/typings"
+    "stubPath": "mswin/typings",
+    "reportMissingModuleSource": "none"
 }

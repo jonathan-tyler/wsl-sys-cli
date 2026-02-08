@@ -69,7 +69,7 @@ def _windows_python_exe() -> str:
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
-@click.option("--config", "config_path", default="~/.config/sys-cli.yaml", show_default=True)
+@click.option("--config", "config_path", default="~/my/dotfiles/sys-cli.yaml", show_default=True)
 @click.option("--verbose", is_flag=True, help="Print commands being executed.")
 @click.option("--dry-run", is_flag=True, help="Print what would run, but do nothing.")
 @click.pass_context
@@ -94,7 +94,27 @@ def switch_audio(app: AppContext, device_name: str) -> None:
     py = _windows_python_exe()
 
     cmd = [py, windows_script_path, "--switch-audio-device", device_name]
-    raise SystemExit(_run(cmd, dry_run=app.dry_run, verbose=app.verbose))
+    rc = _run(cmd, dry_run=app.dry_run, verbose=app.verbose)
+    if rc != 0:
+        raise SystemExit(rc)
+
+    sfx_path = app.config.get("switch", {}).get("sfx")
+    if sfx_path:
+        player_script = app.repo_root / "mswin" / "audio-player-sounddevice" / "__main__.py"
+        if not player_script.exists():
+            raise click.ClickException(f"Missing audio player script: {player_script}")
+
+        resolved_sfx = Path(sfx_path).expanduser().resolve()
+        if not resolved_sfx.is_file():
+            raise click.ClickException(f"Sound file not found: {sfx_path}")
+
+        windows_player_path = _wslpath_windows(player_script)
+        windows_sfx_path = _wslpath_windows(resolved_sfx)
+
+        sfx_cmd = [py, windows_player_path, "--file", windows_sfx_path, "--device", device_name]
+        rc = _run(sfx_cmd, dry_run=app.dry_run, verbose=app.verbose)
+
+    raise SystemExit(rc)
 
 
 @cli.group("backup")
@@ -102,25 +122,36 @@ def backup_group() -> None:
     """Backup helpers."""
 
 
-@backup_group.command("windows")
-@click.pass_obj
-def backup_windows(app: AppContext) -> None:
-    target = app.repo_root / "mswin" / "backup"
-    raise click.ClickException(f"Not implemented yet (target folder is empty): {target}")
-
-
-@backup_group.command("linux")
-@click.pass_obj
-def backup_linux(app: AppContext) -> None:
-    target = app.repo_root / "linux" / "backup"
-    raise click.ClickException(f"Not implemented yet (target folder is empty): {target}")
-
-
 @cli.command("play")
 @click.argument("media_path", type=click.Path(path_type=Path))
+@click.option(
+    "-d",
+    "--device",
+    type=str,
+    default=None,
+    help="Output device name (e.g. 'speakers', 'headphones'). System default if omitted.",
+)
 @click.pass_obj
-def play_media(app: AppContext, media_path: Path) -> None:
-    raise click.ClickException("Not implemented yet (mswin/play-media is missing).")
+def play_media(app: AppContext, media_path: Path, device: str | None) -> None:
+    """Play a sound file on a specific Windows audio device."""
+
+    script = app.repo_root / "mswin" / "audio-player-sounddevice" / "__main__.py"
+    if not script.exists():
+        raise click.ClickException(f"Missing audio player script: {script}")
+
+    resolved = media_path.expanduser().resolve()
+    if not resolved.is_file():
+        raise click.ClickException(f"File not found: {media_path}")
+
+    windows_script_path = _wslpath_windows(script)
+    windows_media_path = _wslpath_windows(resolved)
+    py = _windows_python_exe()
+
+    cmd = [py, windows_script_path, "--file", windows_media_path]
+    if device:
+        cmd += ["--device", device]
+
+    raise SystemExit(_run(cmd, dry_run=app.dry_run, verbose=app.verbose))
 
 
 @cli.command("clip")

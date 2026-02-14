@@ -1,0 +1,6 @@
+# sys CLI configuration
+# Default location: ~/.config/sys-cli.yaml
+
+switch:
+  # Path to a sound effect played after switching audio devices
+  sfx: /mnt/c/Users/Public/sys/sound-effects/sound_01.mp3

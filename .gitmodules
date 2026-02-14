@@ -1,0 +1,3 @@
+[submodule "mswin/audio-player-sounddevice"]
+	path = mswin/audio-player-sounddevice
+	url = git@github.com:jonathan-tyler/audio-player-sounddevice.git

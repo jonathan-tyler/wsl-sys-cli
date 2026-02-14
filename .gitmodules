@@ -7,3 +7,7 @@
 [submodule "mswin/sys-ahk"]
 	path = mswin/sys-ahk
 	url = git@github.com:jonathan-tyler/sys-ahk.git
+[submodule "linux/backup"]
+	path = linux/backup
+	url = git@github.com:jonathan-tyler/backup.git
+	branch = main

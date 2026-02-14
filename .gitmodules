@@ -1,3 +1,6 @@
 [submodule "mswin/audio-player-sounddevice"]
 	path = mswin/audio-player-sounddevice
 	url = git@github.com:jonathan-tyler/audio-player-sounddevice.git
+[submodule "mswin/audio-device-switcher-pycaw"]
+	path = mswin/audio-device-switcher-pycaw
+	url = git@github.com:jonathan-tyler/audio-device-switcher-pycaw.git

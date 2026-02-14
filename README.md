@@ -48,3 +48,29 @@ pipx install --editable .
 # Verify
 sys --help
 ```
+
+## Type Stubs (Pylance/Pyright)
+
+This repo is a multi-tool workspace. Each Windows sub-project under `mswin/` can keep its own local stubs under:
+
+- `mswin/<tool>/typings/`
+
+However, Pylance effectively wants a single `python.analysis.stubPath` per workspace folder, so we also maintain an aggregate stub directory at:
+
+- `typings/` (top-level)
+
+The aggregate directory contains symlinks pointing back to the per-tool stubs.
+
+### Workflow
+
+1. Add/update stubs inside the owning tool’s `mswin/<tool>/typings/`.
+2. Regenerate the aggregate symlinks:
+
+```bash
+sys typings
+```
+
+### Conventions
+
+- If the dependency is imported as a *module* (e.g. `import sounddevice`), prefer a module stub: `sounddevice.pyi`.
+- If the dependency is imported as a *package* (e.g. `from pycaw.utils import ...`), use a package stub directory: `pycaw/__init__.pyi` (plus any submodule `.pyi` files).

@@ -68,6 +68,29 @@ def _windows_python_exe() -> str:
     )
 
 
+def _symlink_relative(dest: Path, target: Path, *, dry_run: bool, verbose: bool) -> None:
+    rel = os.path.relpath(target, start=dest.parent)
+    if verbose or dry_run:
+        click.echo(f"ln -sfn {rel} {dest}")
+    if dry_run:
+        return
+
+    if dest.is_symlink() or dest.exists():
+        dest.unlink()
+
+    dest.symlink_to(rel, target_is_directory=target.is_dir())
+
+
+def _unlink_if_symlink(path: Path, *, dry_run: bool, verbose: bool) -> None:
+    if not path.is_symlink():
+        return
+    if verbose or dry_run:
+        click.echo(f"rm {path}")
+    if dry_run:
+        return
+    path.unlink()
+
+
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option("--config", "config_path", default="~/my/dotfiles/sys-cli.yaml", show_default=True)
 @click.option("--verbose", is_flag=True, help="Print commands being executed.")
@@ -86,7 +109,7 @@ def cli(ctx: click.Context, config_path: str, verbose: bool, dry_run: bool) -> N
 def switch_audio(app: AppContext, device_name: str) -> None:
     """Switch Windows audio output device by name."""
 
-    script = app.repo_root / "mswin" / "pycaw-audio-device-switcher" / "__main__.py"
+    script = app.repo_root / "mswin" / "audio-device-switcher-pycaw" / "__main__.py"
     if not script.exists():
         raise click.ClickException(f"Missing audio switcher script: {script}")
 
@@ -178,6 +201,66 @@ def dl_video(app: AppContext, url: str) -> None:
 @click.pass_obj
 def dl_audio(app: AppContext, url: str) -> None:
     raise click.ClickException("Not implemented yet (linux/yt-dlp-container is missing).")
+
+
+@cli.command("typings")
+@click.pass_obj
+def sync_typings(app: AppContext) -> None:
+    """Sync top-level type stubs from per-extension `mswin/**/typings/`.
+
+    This regenerates symlinks under `<repo>/typings/` so Pylance can discover stubs
+    via a single `python.analysis.stubPath`.
+    """
+
+    repo_root = app.repo_root
+    mswin_dir = repo_root / "mswin"
+    dest_dir = repo_root / "typings"
+
+    if not mswin_dir.is_dir():
+        raise click.ClickException(f"Missing mswin directory: {mswin_dir}")
+
+    if app.verbose or app.dry_run:
+        click.echo(f"Syncing stubs into: {dest_dir}")
+
+    if not dest_dir.exists():
+        if app.verbose or app.dry_run:
+            click.echo(f"mkdir -p {dest_dir}")
+        if not app.dry_run:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Clear existing symlinks in the aggregate dir.
+    for child in sorted(dest_dir.iterdir()):
+        _unlink_if_symlink(child, dry_run=app.dry_run, verbose=app.verbose)
+
+    # Discover stub entries from each mswin subproject.
+    candidates: dict[str, Path] = {}
+    for project in sorted(p for p in mswin_dir.iterdir() if p.is_dir()):
+        typings_dir = project / "typings"
+        if not typings_dir.is_dir():
+            continue
+
+        for entry in sorted(typings_dir.iterdir()):
+            if entry.name in {"__pycache__"}:
+                continue
+
+            is_stub_module = entry.is_file() and entry.suffix == ".pyi"
+            is_stub_package = entry.is_dir() and (entry / "__init__.pyi").is_file()
+            if not is_stub_module and not is_stub_package:
+                continue
+
+            name = entry.name
+            existing = candidates.get(name)
+            if existing and existing.resolve() != entry.resolve():
+                raise click.ClickException(
+                    "Stub name conflict: "
+                    f"{name} found in both {existing} and {entry}. "
+                    "Rename one stub or merge them."
+                )
+
+            candidates[name] = entry
+
+    for name, target in sorted(candidates.items()):
+        _symlink_relative(dest_dir / name, target, dry_run=app.dry_run, verbose=app.verbose)
 
 
 def main() -> None:

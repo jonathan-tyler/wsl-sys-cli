@@ -1,4 +1,4 @@
 {
-    "stubPath": "mswin/typings",
+    "stubPath": "typings",
     "reportMissingModuleSource": "none"
 }

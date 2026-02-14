@@ -4,3 +4,6 @@
 [submodule "mswin/audio-device-switcher-pycaw"]
 	path = mswin/audio-device-switcher-pycaw
 	url = git@github.com:jonathan-tyler/audio-device-switcher-pycaw.git
+[submodule "mswin/sys-ahk"]
+	path = mswin/sys-ahk
+	url = git@github.com:jonathan-tyler/sys-ahk.git

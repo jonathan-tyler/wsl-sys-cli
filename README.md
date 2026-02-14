@@ -13,28 +13,16 @@ This repo assumes:
 ## CLI
 
 ```bash
-sys switch {device_name} -> (@windows) pycaw-audio-device-switcher {device_name}
-sys backup windows -> mswin/backup
-sys backup linux -> linux/backup
+sys switch {device_name} -> (@windows) audio-device-switcher-pycaw {device_name}
 sys play {path/to/sound} [-d device] -> (@windows) sounddevice-audio-player {file} [--device name]
-sys clip {path/to/media} -> linux/clipper
-sys dl video {url} -> linux/yt-dlp-container
-sys dl audio {url} -> linux/yt-dlp-container
-sys startup windows -> mswin/startup
-sys startup linux -> linux/startup
 ```
-
-Notes:
-
-- `sys switch` and `sys play` are implemented.
-- The other commands are placeholders and will error until their target scripts exist.
 
 ## Setup
 
 Everything is run from a WSL terminal. There are two pieces:
 
-1. **Windows Python deps** — `mswin/` sub-projects run via `python.exe` (Windows Python), so their packages must be installed there.
-2. **WSL CLI** — the `sys` command itself is installed in WSL via `pipx`.
+1. **WSL CLI** — the `sys` command itself is installed in WSL via `pipx`.
+2. **Windows Python deps** — `mswin/` sub-projects run via `python.exe` (Windows Python), so their packages must be installed there.
 
 ### 1. Windows Python dependencies
 
@@ -43,7 +31,7 @@ Everything is run from a WSL terminal. There are two pieces:
 python.exe --version
 
 # Install deps for each mswin sub-project
-python.exe -m pip install -r mswin/pycaw-audio-device-switcher/requirements.txt
+python.exe -m pip install -r mswin/audio-device-switcher-pycaw/requirements.txt
 python.exe -m pip install -r mswin/sounddevice-audio-player/requirements.txt
 ```
 

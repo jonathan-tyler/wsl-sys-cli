@@ -10,7 +10,7 @@
 ## Adding a new `mswin/` sub-project
 
 1. Create a kebab-case folder: `mswin/<project-name>/`
-2. Required files, following `mswin/pycaw-audio-device-switcher/` as the canonical example:
+2. Required files, following `mswin/audio-device-switcher-pycaw/` as the canonical example:
    - `__main__.py` — Entry point with `register_args(parser)`, `run(args)`, and `if __name__ == "__main__"` block. Use `try/except ImportError` for relative vs direct imports.
    - `<snake_case_module>.py` — Core logic in a PascalCase class.
    - `pyproject.toml` — Minimal metadata (name, version, readme, requires-python, authors, platforms).

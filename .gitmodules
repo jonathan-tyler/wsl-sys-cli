@@ -11,3 +11,7 @@
 	path = linux/backup
 	url = git@github.com:jonathan-tyler/backup.git
 	branch = main
+[submodule "linux/yt-dlp-container"]
+	path = linux/yt-dlp-container
+	url = git@github.com:jonathan-tyler/yt-dlp-container.git
+	branch = main
